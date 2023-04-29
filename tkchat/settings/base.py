@@ -29,6 +29,7 @@ BASE_APPS = [
 ]
 
 LOCAL_APPS=[
+    'apps.operators'
 ]
 
 THIRD_APPS=[
