@@ -1,5 +1,9 @@
 from .base import *
 
+import environ
+# Initialise environment variables 
+env = environ.Env()
+environ.Env.read_env()
 
 DEBUG = True
 
@@ -9,8 +13,12 @@ ALLOWED_HOSTS = []
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': env('NAME_DB'),
+        'USER': env('USER_DB'),
+        'PASSWORD': env('PASSWORD_DB'),
+        'HOST': env('HOST_DB'),
+        'PORT': env('PORT_DB')
     }
 }
 
