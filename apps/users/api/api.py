@@ -3,7 +3,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from apps.users.api.serializers import AccountRegistrationSerializer,LoginSerializer
+from apps.users.api.serializers import AccountRegistrationSerializer,LoginSerializer,UserSerializer,pruebaSerializer
 from rest_framework import status
 from apps.users.models import User
 
@@ -21,17 +21,7 @@ def debug_auth_view(request, format=None):
     'user': user,
   }
   return Response(content)
-
-
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def operator_api_view(request):
   
-#   if request.method == 'GET':
-#     operator = Operator.objects.all()
-#     operator_serializer = OperatorSerializer(operator,many=True)
-#     return Response(operator_serializer.data)
-    
 @api_view(['POST'])
 def account_registration_view(request):
   if request.method == 'POST':
@@ -44,9 +34,18 @@ def account_registration_view(request):
 @api_view(['POST'])
 def account_login_view(request):
   if request.method == 'POST':
-    serializer = LoginSerializer(data=request.data)
+    serializer = LoginSerializer(data=request.data,context=request.data)
     if serializer.is_valid():
-      user = User.objects.filter(email=request.data['email'])[0]
-      contextToken = user.generate_context_token()
-      return Response(contextToken)
+      context_token = serializer.get_context_token()
+      return Response(context_token, status=status.HTTP_202_ACCEPTED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def account_info_view(request):
+  if request.method == 'GET':
+    se = pruebaSerializer(data=request.GET)
+    print(se.is_valid())
+    queryset = User.objects.all()
+    queryset = User.objects.filter_by_user_id(request, queryset)
+    serializer = UserSerializer(queryset,many=True)
+    return Response(serializer.data,status=status.HTTP_202_ACCEPTED)

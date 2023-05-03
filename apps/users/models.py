@@ -1,46 +1,63 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser,BaseUserManager as AbstractUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager as AbstractUserManager
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import AccessToken
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 # Create your models here.
 
 
-
 class UserManager(AbstractUserManager):
-  
-  def create_user(self, email, date_of_birth, password=None):
-    """
-    Creates and saves a User with the given email, date of
-    birth and password.
-    """
-    if not email:
-        raise ValueError('Users must have an email address')
 
-    user = self.model(
-        email=self.normalize_email(email),
-        date_of_birth=date_of_birth,
-    )
+    def create_user(self, email, date_of_birth, password=None):
+        """
+        Creates and saves a User with the given email, date of
+        birth and password.
+        """
+        if not email:
+            raise ValueError('Users must have an email address')
 
-    user.set_password(password)
-    user.save(using=self._db)
-    return user
-  
-  def create_superuser(self, email, date_of_birth, password=None):
-    """
-    Creates and saves a superuser with the given email, date of
-    birth and password.
-    """
-    user = self.create_user(
-        email,
-        password=password,
-        date_of_birth=date_of_birth,
-    )
-    user.is_admin = True
-    user.save(using=self._db)
-    return user
+        user = self.model(
+            email=self.normalize_email(email),
+            date_of_birth=date_of_birth,
+        )
+
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, date_of_birth, password=None):
+        """
+        Creates and saves a superuser with the given email, date of
+        birth and password.
+        """
+        user = self.create_user(
+            email,
+            password=password,
+            date_of_birth=date_of_birth,
+        )
+        user.is_admin = True
+        user.save(using=self._db)
+        return user
+
+    def parse_request_to_user_id(self, request):
+        header = JWTAuthentication.get_header(
+            self=JWTAuthentication, request=request)
+        rawToken = JWTAuthentication.get_raw_token(
+            self=JWTAuthentication, header=header)
+        access_token = AccessToken(rawToken)
+        user_id = access_token['user_id']
+        return user_id
+
+    def filter_by_user_id(self, request, queryset):
+        user_id = self.parse_request_to_user_id(request)
+        queryset = queryset.filter(id=user_id)
+        return queryset
+    
+
 
 class User(AbstractBaseUser):
-    email = models.EmailField( max_length=255, unique=True)
+    email = models.EmailField(max_length=255, unique=True)
     date_of_birth = models.DateField()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -64,13 +81,13 @@ class User(AbstractBaseUser):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
-    
+
     def generate_context_token(self):
         token = RefreshToken.for_user(self)
         context = {
             'refresh': str(token),
             'access': str(token.access_token),
-            'isAdmin' : self.is_business_owner
+            'isAdmin': self.is_business_owner
         }
         return context
 
@@ -91,4 +108,4 @@ class User(AbstractBaseUser):
 
     @property
     def linkedin_signed_in(self):
-      return bool(self.linkedin_token) and self.expiry_date > timezone.now()
+        return bool(self.linkedin_token) and self.expiry_date > timezone.now()
