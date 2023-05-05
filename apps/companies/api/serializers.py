@@ -3,38 +3,35 @@ from apps.companies.models import Company
 from apps.users.models import User
 
 """
-  Default company data serializer, exclude user field
+  Default company data serializer
 """
-class CompanyDataSerializer(serializers.ModelSerializer):
-  user_id = serializers.CharField(required=True)
+class CompanySerializer(serializers.ModelSerializer):
   class Meta:
     model = Company
     fields= '__all__'
-    read_only_fields = ('user','user_id')
-    
-    
-"""
-  Custom company registration serializer with user_id 
-"""
-class CompanyRegistrationSerializer(serializers.ModelSerializer):
-  user_id = serializers.CharField(required=True)
-  class Meta:
-    model= Company
-    fields = ['name', 'email', 'phone', 'user_id']
   
-  def validate_user_id(self,value):
+  def valid_user(self, value):
     valid_user = User.objects.filter(id=value)
     if not valid_user.exists():
-      raise serializers.ValidationError({'token':'User not found'})
+      raise serializers.ValidationError('No se pudo encontrar el usuario')
+    return value
+
+"""
+  Default company data serializer, exclude user field
+"""
+class CompanyUpdateDataSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Company
+    fields= '__all__'
+    read_only_fields = ('user','created_on')
+  
+  def valid_user(self, value):
+    valid_user = User.objects.filter(id=value)
+    if not valid_user.exists():
+      raise serializers.ValidationError('No se pudo encontrar el usuario')
+    if self.context['user']!= value:
+      raise serializers.ValidationError('This user is not the company administrator')
     return value
   
-  def save(self):
-    user = User.objects.filter(id=self.validated_data['user_id'])[0]
-    company = Company.objects.create(
-      name = self.validated_data['name'],
-      email = self.validated_data['email'],
-      phone = self.validated_data['phone'],
-      user = user
-    )
-    company.save()
-    return company
+    
+ 

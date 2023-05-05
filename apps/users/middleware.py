@@ -11,9 +11,12 @@ BYPASSED_ROUTES = [
 def get_user_id(request):
   header = JWTAuthentication.get_header(self=JWTAuthentication, request=request)
   rawToken = JWTAuthentication.get_raw_token(self=JWTAuthentication, header=header)
-  access_token = AccessToken(rawToken)
-  user_id = access_token['user_id']
-  return user_id
+  try:
+    access_token = AccessToken(rawToken)
+    user_id = access_token['user_id']
+    return user_id
+  except:
+    return None
 
 class ModificarRequestMiddleware(MiddlewareMixin):
   def __init__(self, get_response):
@@ -25,12 +28,12 @@ class ModificarRequestMiddleware(MiddlewareMixin):
       user_id = get_user_id(request=request)
       if request.method == 'GET':
         get_data = request.GET.copy()
-        get_data.update({'user_id': user_id})
+        get_data.update({'user': user_id})
         request.GET = get_data
         
       if request.method == 'POST':
         get_data = request.POST.copy()
-        get_data.update({'user_id': user_id})
+        get_data.update({'user': user_id})
         request.POST = get_data
         
     response = self.get_response(request)
