@@ -5,8 +5,9 @@ import sys
 
 
 def main():
+    IS_DEV = 'RENDER' not in os.environ
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tkchat.settings.local')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tkchat.settings.'+ 'local'if IS_DEV else'production')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

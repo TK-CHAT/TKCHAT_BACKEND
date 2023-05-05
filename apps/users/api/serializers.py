@@ -1,10 +1,30 @@
 from rest_framework import serializers
 from apps.users.models import User
+from django.contrib.auth import hashers
+from apps.companies.models import Company
+from apps.companies.api.serializers import CompanyDataSerializer
 
+class UserDataSerializer(serializers.ModelSerializer):
+  companies = CompanyDataSerializer( source='company_set',many=True, read_only=True )
+  class Meta:
+    model = User
+    fields = ['email','date_of_birth','is_active','is_admin','companies']
+    lookup_field = 'id'
 
-class AccountRegistrationSerializer(serializers.ModelSerializer):
+"""
+  Validate user_id from jtw token
+"""
+class UserIdSerializer(serializers.Serializer):
+  user_id = serializers.IntegerField(required=True)
+  
+  def validate_user_id(self,value):
+    valid_user = User.objects.filter(id=value)
+    if not valid_user.exists():
+      raise serializers.ValidationError({'token': 'User not found'})
+    return value
+
+class UserAdminRegistrationSerializer(serializers.ModelSerializer):
   password2 = serializers.CharField(style={"input_type":"password"}, write_only=True)
-   
   class Meta:
     model= User
     fields = ['email', 'date_of_birth', 'password', 'password2']
@@ -23,7 +43,6 @@ class AccountRegistrationSerializer(serializers.ModelSerializer):
       raise serializers.ValidationError({'password': 'Passwords must match.'})
     user.set_password(password)
     user.is_admin = True
-    
     user.save()
     return user
 
@@ -41,15 +60,19 @@ class LoginSerializer(serializers.Serializer):
   password = serializers.CharField(style={"inpuy_type": "password"},required=True)
   
   def validate_email(self,value):
-    check_email = User.objects.filter(email=value)
-    if check_email is None:
+    valid_user_list = User.objects.filter(email=value)
+    if len(valid_user_list) == 0:
       raise serializers.ValidationError({'email':'Does not match'})
+    valid_user = valid_user_list[0]
+    if hashers.check_password(self.context['password'],valid_user.password) == False:
+      raise serializers.ValidationError({'email':'Password  or email do not match'})
     return value
   
-  def validate_password(self,value):
-    check_password = User.objects.filter(password=value)
-    if check_password is None:
-      raise serializers.ValidationError({'password':'Does not match'})
-    return value
+  def get_context_token(self):
+    user = User.objects.filter(email= self.context['email'])[0]
+    context_token = user.generate_context_token()
+    return context_token
+    
+  
     
   

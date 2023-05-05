@@ -11,6 +11,9 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tkchat.settings.local')
+
+IS_DEV = 'RENDER' not in os.environ
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tkchat.settings.'+'local' if IS_DEV else 'production')
 
 application = get_asgi_application()
