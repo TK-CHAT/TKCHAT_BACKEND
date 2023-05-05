@@ -11,7 +11,7 @@ if RENDER_EXTERNAL_HOSTNAME:
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url(
+    'default': dj_database_url.config(
         default='postgresql://postgres:postgres@localhost:5432/mysite',
         conn_max_age=600
     )
