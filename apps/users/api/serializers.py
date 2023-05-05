@@ -2,24 +2,29 @@ from rest_framework import serializers
 from apps.users.models import User
 from django.contrib.auth import hashers
 from apps.companies.models import Company
-from apps.companies.api.serializers import CompanySerializer
+from apps.companies.api.serializers import CompanyDataSerializer
 
-class UserSerializer(serializers.ModelSerializer):
-  companies = CompanySerializer( source='company_set',many=True, read_only=True )
+class UserDataSerializer(serializers.ModelSerializer):
+  companies = CompanyDataSerializer( source='company_set',many=True, read_only=True )
   class Meta:
     model = User
     fields = ['email','date_of_birth','is_active','is_admin','companies']
     lookup_field = 'id'
 
-class pruebaSerializer(serializers.Serializer):
+"""
+  Validate user_id from jtw token
+"""
+class UserIdSerializer(serializers.Serializer):
   user_id = serializers.IntegerField(required=True)
   
   def validate_user_id(self,value):
-    print(f'valor de user_id {value}')
+    valid_user = User.objects.filter(id=value)
+    if not valid_user.exists():
+      raise serializers.ValidationError({'token': 'User not found'})
     return value
-class AccountRegistrationSerializer(serializers.ModelSerializer):
+
+class UserAdminRegistrationSerializer(serializers.ModelSerializer):
   password2 = serializers.CharField(style={"input_type":"password"}, write_only=True)
-   
   class Meta:
     model= User
     fields = ['email', 'date_of_birth', 'password', 'password2']

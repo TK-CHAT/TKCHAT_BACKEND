@@ -3,7 +3,10 @@ from django.http import QueryDict
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
 
-BYPASSED_ROUTES = ['/api/account/register/','/api/account/login/']
+BYPASSED_ROUTES = [
+  '/api/account/register/',
+  '/api/account/login/'
+]
 
 def get_user_id(request):
   header = JWTAuthentication.get_header(self=JWTAuthentication, request=request)
@@ -26,9 +29,9 @@ class ModificarRequestMiddleware(MiddlewareMixin):
         request.GET = get_data
         
       if request.method == 'POST':
-        request.data._mutable = True
-        request.data['user_id']= user_id
-    
-    
+        get_data = request.POST.copy()
+        get_data.update({'user_id': user_id})
+        request.POST = get_data
+        
     response = self.get_response(request)
     return response

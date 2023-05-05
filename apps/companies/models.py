@@ -7,7 +7,7 @@ class Company(models.Model):
   email = models.EmailField(max_length=255,unique=True)
   phone = models.CharField(max_length=15)
   created_on = models.DateTimeField(auto_now_add=True)
-  user = models.ForeignKey(User,on_delete=models.CASCADE)
+  user = models.ForeignKey(User,on_delete=models.CASCADE, to_field='id')
   
   REQUIRED_FIELDS = ['name','email','owner_id']
   
