@@ -23,5 +23,6 @@ urlpatterns = [
     path('api/token/refresh/',jwt_views.TokenObtainPairView.as_view(), name='token_refresh'),
     path('api/account/',include('apps.users.api.urls')),
     path('api/companies/',include('apps.companies.api.urls')),
+    path('api/operators/',include('apps.operators.api.urls')),
     
 ]

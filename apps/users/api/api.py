@@ -39,7 +39,7 @@ def account_info_view(request):
   if request.method == 'GET':
     serializer_user_id = UserIdSerializer(data=request.GET)
     if serializer_user_id.is_valid():
-      queryset = User.objects.filter(id=serializer_user_id.validated_data['user_id'])
+      queryset = User.objects.filter(id=serializer_user_id.validated_data['user'])
       serializer_response = UserDataSerializer(queryset,many=True)
       return Response(serializer_response.data,status=status.HTTP_202_ACCEPTED)
     return Response(serializer_user_id.errors,status=status.HTTP_401_UNAUTHORIZED)

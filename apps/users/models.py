@@ -1,7 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager as AbstractUserManager
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.tokens import AccessToken
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 # Create your models here.
@@ -9,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 class UserManager(AbstractUserManager):
 
-    def create_user(self, email, date_of_birth, password=None):
+    def create_user(self,first_name,last_name, email, date_of_birth, password=None):
         """
         Creates and saves a User with the given email, date of
         birth and password.
@@ -18,6 +16,8 @@ class UserManager(AbstractUserManager):
             raise ValueError('Users must have an email address')
 
         user = self.model(
+            first_name= first_name,
+            last_name= last_name,
             email=self.normalize_email(email),
             date_of_birth=date_of_birth,
         )
@@ -26,13 +26,15 @@ class UserManager(AbstractUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, date_of_birth, password=None):
+    def create_superuser(self,first_name,last_name, email, date_of_birth, password=None):
         """
         Creates and saves a superuser with the given email, date of
         birth and password.
         """
         user = self.create_user(
-            email,
+            first_name= first_name,
+            last_name= last_name,
+            email=self.normalize_email(email),
             password=password,
             date_of_birth=date_of_birth,
         )
@@ -40,24 +42,12 @@ class UserManager(AbstractUserManager):
         user.save(using=self._db)
         return user
 
-    def parse_request_to_user_id(self, request):
-        header = JWTAuthentication.get_header(
-            self=JWTAuthentication, request=request)
-        rawToken = JWTAuthentication.get_raw_token(
-            self=JWTAuthentication, header=header)
-        access_token = AccessToken(rawToken)
-        user_id = access_token['user_id']
-        return user_id
-
-    def filter_by_user_id(self, request, queryset):
-        user_id = self.parse_request_to_user_id(request)
-        queryset = queryset.filter(id=user_id)
-        return queryset
     
-
-
 class User(AbstractBaseUser):
+    first_name = models.CharField(max_length=255, default="joe")
+    last_name = models.CharField(max_length=255, default="doe")
     email = models.EmailField(max_length=255, unique=True)
+    phone = models.CharField(max_length=15,unique=False, null=True)
     date_of_birth = models.DateField()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -67,7 +57,7 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['date_of_birth']
+    REQUIRED_FIELDS = ['first_name','last_name','date_of_birth']
 
     def __str__(self):
         return self.email
