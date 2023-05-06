@@ -5,7 +5,7 @@ from apps.companies.models import Company
 from apps.companies.api.serializers import CompanyUpdateDataSerializer
 
 class UserDataSerializer(serializers.ModelSerializer):
-  companies = CompanyUpdateDataSerializer( source='company_set',many=True, read_only=True )
+  companies = CompanyUpdateDataSerializer(many=True, read_only=True)
   class Meta:
     model = User
     fields = ['id','email','date_of_birth','is_active','is_admin','companies']
@@ -27,13 +27,15 @@ class UserAdminRegistrationSerializer(serializers.ModelSerializer):
   password2 = serializers.CharField(style={"input_type":"password"}, write_only=True)
   class Meta:
     model= User
-    fields = ['email', 'date_of_birth', 'password', 'password2']
+    fields = ['first_name','last_name','email', 'date_of_birth', 'password', 'password2']
     extra_kwargs = {
       '[password]': {'write_only':True}
     }
   
   def save(self):
     user = User(
+      first_name= self.validated_data['first_name'],
+      last_name= self.validated_data['last_name'],
       email=self.validated_data['email'], 
       date_of_birth=self.validated_data['date_of_birth']
     )

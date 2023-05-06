@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from apps.companies.api.serializers import CompanyUpdateDataSerializer,CompanySerializer
 from rest_framework import status
-from apps.users.models import User
 from apps.companies.models import Company
 
 @api_view(['POST'])

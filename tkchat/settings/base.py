@@ -15,7 +15,9 @@ import os
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY',default=env('SECRET_KEY'))
-
+# CORS_ALLOW_CREDENTIALS = True
+# CSRF_COOKIE_HTTPONLY = True
+# CSRF_COOKIE_SECURE = True
 DEBUG = 'RENDER' not in os.environ
 
 # Application definition
@@ -31,7 +33,8 @@ BASE_APPS = [
 
 LOCAL_APPS=[
     'apps.users',
-    'apps.companies'
+    'apps.companies',
+    'apps.operators'
 ]
 
 THIRD_APPS=[
@@ -46,7 +49,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -128,5 +131,5 @@ if not DEBUG:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_PROFILE_MODULE = 'users.User'
+# AUTH_PROFILE_MODULE = 'users.User'
 AUTH_USER_MODEL = 'users.User'

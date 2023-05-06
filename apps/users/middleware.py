@@ -9,9 +9,9 @@ BYPASSED_ROUTES = [
 ]
 
 def get_user_id(request):
-  header = JWTAuthentication.get_header(self=JWTAuthentication, request=request)
-  rawToken = JWTAuthentication.get_raw_token(self=JWTAuthentication, header=header)
   try:
+    header = JWTAuthentication.get_header(self=JWTAuthentication, request=request)
+    rawToken = JWTAuthentication.get_raw_token(self=JWTAuthentication, header=header)
     access_token = AccessToken(rawToken)
     user_id = access_token['user_id']
     return user_id
