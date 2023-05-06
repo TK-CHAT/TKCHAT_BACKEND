@@ -8,12 +8,18 @@ from apps.users.models import User
 class CompanySerializer(serializers.ModelSerializer):
   class Meta:
     model = Company
-    fields= '__all__'
+    fields= ['name','phone', 'email', 'user']
+    extra_kwargs = {
+      'user':{'required':True}
+    }
   
-  def valid_user(self, value):
-    valid_user = User.objects.filter(id=value)
-    if not valid_user.exists():
-      raise serializers.ValidationError('No se pudo encontrar el usuario')
+  def validate_user(self, value):
+    try:
+      user = User.objects.get(email=value)
+      if not user.is_admin:
+        raise serializers.ValidationError('El usuario no tiene privilegios para crear empresas')
+    except ValueError as e:
+      raise serializers.ValidationError(e.args)
     return value
 
 """
@@ -23,15 +29,31 @@ class CompanyUpdateDataSerializer(serializers.ModelSerializer):
   class Meta:
     model = Company
     fields= '__all__'
-    read_only_fields = ('user','created_on')
+    extra_kwargs = {
+      'user':{'required':True, }
+    }
   
-  def valid_user(self, value):
-    valid_user = User.objects.filter(id=value)
-    if not valid_user.exists():
-      raise serializers.ValidationError('No se pudo encontrar el usuario')
-    if self.context['user']!= value:
-      raise serializers.ValidationError('This user is not the company administrator')
+  def validate_user(self, value):
+    try:
+      user = User.objects.get(email=value)
+      if not user.is_admin:
+        raise serializers.ValidationError('El usuario no tiene privilegios para modificar datos de la empresa')
+      if not self.context['user']==user:
+        raise serializers.ValidationError('El usuario no es el dueño de la empresa')
+    except ValueError as e:
+      raise serializers.ValidationError(e.args)
     return value
-  
     
- 
+class ValidCompanySerializer(serializers.Serializer):
+  id = serializers.IntegerField(required = True)
+  
+  def validate_id(self,value):
+    try:
+      print(value)
+      company = Company.objects.filter(id=value)
+      if len(company) == 0:
+        raise serializers.ValidationError('El id de la empresa no está registrado')
+    except ValueError as e:
+      raise serializers.ValidationError(e.args)
+        
+    return value

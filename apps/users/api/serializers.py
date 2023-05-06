@@ -29,7 +29,9 @@ class UserAdminRegistrationSerializer(serializers.ModelSerializer):
     model= User
     fields = ['first_name','last_name','email', 'date_of_birth', 'password', 'password2']
     extra_kwargs = {
-      '[password]': {'write_only':True}
+      '[password]': {'write_only':True},
+      'first_name': {'required':True},
+      'last_name': {'required':True},
     }
   
   def save(self):
