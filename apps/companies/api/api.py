@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
-from apps.companies.api.serializers import CompanyUpdateDataSerializer,CompanySerializer
+from apps.companies.api.serializers import CompanyUpdateDataSerializer,CompanySerializer, ValidCompanySerializer
 from rest_framework import status
 from apps.companies.models import Company
 
@@ -20,15 +20,15 @@ def company_registration_view(request):
 @permission_classes([IsAuthenticated])
 def company_update_view(request):
   if request.method == 'POST':
-    try:  
+    valid_company =  ValidCompanySerializer(data=request.data)
+    if valid_company.is_valid():
+      print(valid_company.validated_data)
       instance = Company.objects.get(id=request.data['id'])
-      serializer = CompanyUpdateDataSerializer(instance=instance, data=request.data, partial=True, context=instance)
-      if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data,status=status.HTTP_202_ACCEPTED)
-      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    except:
-      context_error = {
-        'id': 'Company not found'
-      }
-      return Response(context_error, status=status.HTTP_400_BAD_REQUEST)
+      print(instance)
+      update_serializer = CompanyUpdateDataSerializer(instance=instance, data=request.data, partial=True, context=instance)
+      if update_serializer.is_valid():
+        update_serializer.save()
+        return Response(update_serializer.data,status=status.HTTP_202_ACCEPTED)
+      return Response(update_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(valid_company.errors, status=status.HTTP_400_BAD_REQUEST)
+    

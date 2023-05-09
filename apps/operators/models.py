@@ -6,7 +6,6 @@ from apps.companies.models import  Company
 
 class Operator(User):
   work_company = models.ForeignKey(Company, on_delete=models.PROTECT,to_field='id', related_name='employees')
-  user = models.ForeignKey(User, on_delete=models.PROTECT,to_field='id', related_name='operators')
   
   REQUIRED_FIELDS = ['first_name','last_name','email','phone','work_company','user']
   def __str__(self):
