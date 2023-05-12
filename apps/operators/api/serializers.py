@@ -67,8 +67,7 @@ class OperatorUpdateSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError('La empresa no existe')   
     except ValueError as e:
       raise serializers.ValidationError(e.args)
-    finally:
-      return value
+    return value
   
   def validate_user(self,value):
     try:
@@ -80,7 +79,21 @@ class OperatorUpdateSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError('El usuario no es administrador')
     except ValueError as e:
       raise serializers.ValidationError(e.args)
-    finally:
-      return value
+    return value
 
-
+class OperatorIdValidatorSerializer(serializers.Serializer):
+  id = serializers.IntegerField(required=True)
+  user = serializers.IntegerField(required=True)
+  work_company = serializers.IntegerField(required=True)
+  def validate(self, value):
+    try:
+      print(value)
+      valid_operator = Operator.objects.get(id=value['id'])
+      
+      if valid_operator.work_company != self.context['work_company']:
+        raise serializers.ValidationError(e.args)
+        
+        
+    except ValueError as e:
+      raise serializers.ValidationError(e.args)
+    return value
