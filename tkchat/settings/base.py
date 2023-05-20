@@ -23,6 +23,8 @@ DEBUG = 'RENDER' not in os.environ
 # Application definition
 
 BASE_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -34,7 +36,8 @@ BASE_APPS = [
 LOCAL_APPS=[
     'apps.users',
     'apps.companies',
-    'apps.operators'
+    'apps.operators',
+    'apps.livechat',
 ]
 
 THIRD_APPS=[
@@ -77,7 +80,8 @@ TEMPLATES = [
         },
     },
 ]
-WSGI_APPLICATION = 'tkchat.wsgi.application'
+# WSGI_APPLICATION = 'tkchat.wsgi.application'
+ASGI_APPLICATION = 'tkchat.asgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
