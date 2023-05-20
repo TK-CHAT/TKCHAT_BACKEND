@@ -22,9 +22,7 @@ def company_update_view(request):
   if request.method == 'POST':
     valid_company =  ValidCompanySerializer(data=request.data)
     if valid_company.is_valid():
-      print(valid_company.validated_data)
       instance = Company.objects.get(id=request.data['id'])
-      print(instance)
       update_serializer = CompanyUpdateDataSerializer(instance=instance, data=request.data, partial=True, context=instance)
       if update_serializer.is_valid():
         update_serializer.save()

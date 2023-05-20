@@ -51,6 +51,7 @@ class User(AbstractBaseUser):
     date_of_birth = models.DateField()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    created_date = models.DateTimeField(auto_now_add=True)
     credits = models.PositiveIntegerField(default=100)
     linkedin_token = models.TextField(blank=True, default='')
     expiry_date = models.DateTimeField(null=True, blank=True)

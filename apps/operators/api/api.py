@@ -21,10 +21,15 @@ def register_operator_view(request):
 @permission_classes([IsAuthenticated])
 def update_operator_view(request):
   if request.method == 'POST':
-    seria = OperatorIdValidatorSerializer(data=request.data)
-    if seria.is_valid():
-      pass
-    return Response(seria.errors, status=status.HTTP_400_BAD_REQUEST)
+    validate_serializer = OperatorIdValidatorSerializer(data=request.data,context=request.data)
+    if validate_serializer.is_valid():
+      instance = Operator.objects.get(id = validate_serializer.validated_data['id'])
+      update_serializer = OperatorUpdateSerializer(instance=instance , data=request.data,partial=True)
+      if update_serializer.is_valid():
+        update_serializer.save()
+        return Response(update_serializer.data, status=status.HTTP_201_CREATED)
+      return Response(update_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(validate_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     # try:
       
       

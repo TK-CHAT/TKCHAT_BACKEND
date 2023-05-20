@@ -55,45 +55,51 @@ class OperatorRegistrationSerializer(serializers.ModelSerializer):
     return operator
 
 class OperatorUpdateSerializer(serializers.ModelSerializer):
-  user = serializers.IntegerField(required=True, write_only=True)
   class Meta:
     model=Operator
-    fields='__all__'
+    fields=['first_name','last_name','email','phone','is_active','work_company','id','date_of_birth']
+    extra_kwargs = {
+      'work_company': {'read_only':True},
+      'id': {'read_only':True},
+    }
     
-  def validate_work_company(self,value):
-    try:
-      company = Company.objects.get(name=str(value))
-      if not company:
-        raise serializers.ValidationError('La empresa no existe')   
-    except ValueError as e:
-      raise serializers.ValidationError(e.args)
-    return value
-  
-  def validate_user(self,value):
-    try:
-      company = Company.objects.get(id=self.context['work_company'])
-      user = User.objects.get(id=value)
-      if not user == company.user:
-        raise serializers.ValidationError('El usuario no es administrador de la empresa')
-      if not user.is_admin:
-        raise serializers.ValidationError('El usuario no es administrador')
-    except ValueError as e:
-      raise serializers.ValidationError(e.args)
-    return value
 
 class OperatorIdValidatorSerializer(serializers.Serializer):
   id = serializers.IntegerField(required=True)
   user = serializers.IntegerField(required=True)
   work_company = serializers.IntegerField(required=True)
+  
+  def validate_id(self,value):
+    try:
+      Operator.objects.get(id=value)
+    except Operator.DoesNotExist:
+      raise serializers.ValidationError('El id operador no existe')
+    return value
+  
+  def validate_user(self,value):
+    try:
+      User.objects.get(id=value)
+    except User.DoesNotExist:
+      raise serializers.ValidationError('El usuario token no existe')
+    return value
+      
+    
+  def validate_work_company(self,value):
+    try:
+      Company.objects.get(id=value)
+    except Company.DoesNotExist:
+      raise serializers.ValidationError('La compañia no existe')
+    return value
+  
   def validate(self, value):
     try:
-      print(value)
       valid_operator = Operator.objects.get(id=value['id'])
-      
-      if valid_operator.work_company != self.context['work_company']:
-        raise serializers.ValidationError(e.args)
-        
-        
+      valid_company = Company.objects.get(id=value['work_company'])
+      valid_user = User.objects.get(id = value['user'])
+      if not valid_operator.work_company == valid_company:
+        raise serializers.ValidationError('El operador no trabaja para la compañia ' + str(valid_company))
+      if not valid_company.user == valid_user:
+        raise serializers.ValidationError('El user token no es administrador de la compañia')
     except ValueError as e:
       raise serializers.ValidationError(e.args)
     return value

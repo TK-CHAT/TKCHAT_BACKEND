@@ -3,7 +3,8 @@ from apps.users.models import User
 from django.contrib.auth import hashers
 from apps.companies.models import Company
 from apps.companies.api.serializers import CompanyUpdateDataSerializer
-
+from datetime import datetime
+from django.utils import timezone
 class UserDataSerializer(serializers.ModelSerializer):
   companies = CompanyUpdateDataSerializer(many=True, read_only=True)
   class Meta:
@@ -50,6 +51,11 @@ class UserAdminRegistrationSerializer(serializers.ModelSerializer):
     user.save()
     return user
 
+class UserDefaultSerializer(serializers.ModelSerializer):
+  class Meta: 
+    model=User,
+    fields='__all__'
+
 class PasswordChangeSerializer(serializers.Serializer):
   current_password = serializers.CharField(style={"input_type": "password"}, required=True)
   new_password = serializers.CharField(style={"input_type": "password"}, required=True)
@@ -73,8 +79,10 @@ class LoginSerializer(serializers.Serializer):
     return value
   
   def get_context_token(self):
-    user = User.objects.filter(email= self.context['email'])[0]
+    user = User.objects.get(email= self.context['email'])
     context_token = user.generate_context_token()
+    user.last_login = datetime.now(tz=timezone.utc)
+    user.save()
     return context_token
     
   

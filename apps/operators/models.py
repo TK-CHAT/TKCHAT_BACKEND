@@ -9,5 +9,5 @@ class Operator(User):
   
   REQUIRED_FIELDS = ['first_name','last_name','email','phone','work_company','user']
   def __str__(self):
-    return self.name
+    return self.email
   
