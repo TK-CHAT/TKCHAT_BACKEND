@@ -22,5 +22,5 @@ CURRENT_ENV = 'local'if IS_DEV else'production'
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tkchat.settings.'+CURRENT_ENV)
 application = ProtocolTypeRouter({
   'http':AsgiHandler(),
-  'websockets': apps.livechat.routing.websockets_urlpatterns,
+  'websocket': URLRouter(apps.livechat.routing.websockets_urlpatterns),
 })
