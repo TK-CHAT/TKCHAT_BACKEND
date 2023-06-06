@@ -5,6 +5,7 @@ db.sqlite3
 # C extensions
 *.so
 .env
+tkchat/.env
 # Distribution / packaging
 .Python
 env/
