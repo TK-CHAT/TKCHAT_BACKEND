@@ -25,5 +25,6 @@ urlpatterns = [
     path('api/companies/',include('apps.companies.api.urls')),
     path('api/operators/',include('apps.operators.api.urls')),
     path('api/livechat/',include('apps.livechat.api.urls')),
+    path('api/wsp/',include('apps.wsp.api.urls')),
     
 ]

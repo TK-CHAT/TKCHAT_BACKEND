@@ -38,6 +38,8 @@ LOCAL_APPS=[
     'apps.companies',
     'apps.operators',
     'apps.livechat',
+    'apps.wsp',
+    'apps.tkbot',
 ]
 
 THIRD_APPS=[
