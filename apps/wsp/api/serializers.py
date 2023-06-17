@@ -30,11 +30,11 @@ class ClientWPSSerializer(serializers.ModelSerializer):
 class ChatWSPSerializer(serializers.ModelSerializer):
   class Meta:
     model=ChatWSP
-    fields = ['client','operator']
+    fields = ['client','operator','company']
 
   def save(self, **kwargs):
       self.validated_data['status'] = CHAT_STATUS.ACTIVE
-      super().save(self,**kwargs)
+      super().save(**kwargs)
       
 class ChatWSPDefaultSerializer(serializers.ModelSerializer):
   class Meta:

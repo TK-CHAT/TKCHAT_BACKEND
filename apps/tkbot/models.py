@@ -12,7 +12,6 @@ import json
 from apps.wsp.models import ChatWSP
 
 
-
 class Bot(User):
   _bot_mail="default@msg.bot"
   temperature = models.FloatField(validators=[MinValueValidator(0.00), MaxValueValidator(2.00)],default=1.00)
@@ -21,38 +20,32 @@ class Bot(User):
   
   def exist(self):
     try:
-      bot = self.objects.get(email=self.bot_mail)
+      bot = self.objects.get(email=self._bot_mail)
       if bot:
         return True
     except self.DoesNotExist:
       return False
     return False
 
-  def create(self,company):
-    if self.exist():
-      return False
+  def get_register_query(self,company):
     password= generate_random_password(10)
-    try:
-      self.objects.create(
-        email = self.bot_mail,
-        date_of_birth= datetime.now(),
-        password=password,
-        first_name="EGO",
-        last_name="tkbot",
-        temperature=1.00,
-        company= company
-      )
-    except:
-      return False
-    return True
+    chat_query = {
+      "email" : self._bot_mail,
+      "date_of_birth": datetime.today().strftime('%Y-%m-%d'),
+      "password":password,
+      "first_name":"EGO",
+      "last_name":"tkbot",
+      "temperature":1.00,
+      "company": company.id
+    }
+    return chat_query
   
-  def get_user_bot(self):
+  def get_user_bot(self,company):
     try:
-      bot = self.objects.get(email=self.bot_mail)
+      bot = Bot.objects.get(email=self._bot_mail, company=company)
       return bot
-    except self.DoesNotExist:
+    except Bot.DoesNotExist:
       return None
-
 
 
 class openAI():

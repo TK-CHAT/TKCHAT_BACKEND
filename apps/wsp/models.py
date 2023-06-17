@@ -20,19 +20,19 @@ class ClientWSP(models.Model):
   
   def auto_check_add(phone_number):
     try:
-      client = ClientWSP.objects.get(phone_number= phone_number)
+      client = ClientWSP.objects.get(phone_number=phone_number)
       if client:
         return client
       return None
     except ClientWSP.DoesNotExist: 
-      client = ClientWSP.objects.create(phone_number="123456789")
+      client = ClientWSP.objects.create(phone_number=phone_number)
       return client
 
 class ChatWSP(models.Model):
   client = models.OneToOneField(ClientWSP,on_delete=models.CASCADE)
   operator = models.ManyToManyField(User)
   creation_on = models.DateTimeField(auto_now_add=True)
-  company = models.ForeignKey(Company,on_delete=models.CASCADE,to_field='id',default='9', related_name='chats')
+  company = models.ForeignKey(Company,on_delete=models.CASCADE,to_field='id', related_name='chats')
   status = models.CharField(max_length=8,default=CHAT_STATUS.ACTIVE, choices=[
     (CHAT_STATUS.CREATE, 'CREATE'),
     (CHAT_STATUS.ACTIVE, 'ACTIVE'),
@@ -40,7 +40,7 @@ class ChatWSP(models.Model):
     (CHAT_STATUS.REMOVED, 'REMOVED'),
     (CHAT_STATUS.SOLVED, 'SOLVED'),
   ])
-  REQUIRED_FIELDS = ['client','operator','status']
+  REQUIRED_FIELDS = ['client','operator','status','company']
   
   def exist(**kwargs):
     try:
@@ -50,19 +50,14 @@ class ChatWSP(models.Model):
     except ChatWSP.DoesNotExist:
       return False
     
-  def auto_check_add(client:ClientWSP,company:Company,bot):
+  def check_get(self,client:ClientWSP):
     try:
       chat = ChatWSP.objects.get(client=client)
       if chat:
         return chat
       return None
     except ChatWSP.DoesNotExist:
-      chat = ChatWSP.objects.create(
-        client= client,
-        company= company,
-        operator=bot,
-      )
-      return chat
+      return None
 
 class MessageWSP(models.Model):
   chat = models.ForeignKey(ChatWSP, on_delete=models.CASCADE, related_name="messages")

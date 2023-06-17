@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from twilio.twiml.messaging_response import MessagingResponse
 from apps.companies.models import Company
 from apps.tkbot.models import Bot
+from apps.tkbot.api.serializers import botSerializer
 
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
@@ -74,23 +75,48 @@ def receive_msg_wps_view(request):
   receiver = request.POST.get('To')
   message = request.POST.get('Body')
   print(f'{sender} says {message}')
-  print(request.POST)
   client = ClientWSP.auto_check_add(sender.split(":")[1])
   try:
     company = Company.objects.get(phone= receiver.split(":")[1])
-    auto_bot= Bot()
-    if not auto_bot.exist():
-      auto_bot.create()
-    auto_bot= auto_bot.get_user_bot()
-    chat = ChatWSP.auto_check_add(client=client,company=company,bot=auto_bot)
-    msg = MessageWSP.objects.create(
-      msg=message,
-      chat=chat,
-      status=MSG_DESTINATION.COMPANY,
-      role = MSG_ROL.USER
-    )
   except Company.DoesNotExist:
-    print("La compañia no funca :C")
+    print("No se encontro una compañia creado")
+    return Response({"Company":"Company not found"},status=status.HTTP_400_BAD_REQUEST)
+  auto_bot= Bot.get_user_bot(Bot,company)
+  if not auto_bot:
+    bot_serializer= botSerializer(data=Bot.get_register_query(Bot,company))
+    if bot_serializer.is_valid():
+      auto_bot=bot_serializer.save()
+    else:
+      print(bot_serializer.errors)
+      return Response(bot_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+      
+  chat = ChatWSP.check_get(ChatWSP,client=client)
+  if not chat:
+    query_chat = {
+      "client":client.id,
+      "operator":[auto_bot.id],
+      "company":company.id,
+    }
+    serializer_chat = ChatWSPSerializer(data=query_chat)
+    if serializer_chat.is_valid():
+      chat = serializer_chat.save()
+    else:
+      print(serializer_chat.errors)
+      return Response(serializer_chat.errors,status=status.HTTP_400_BAD_REQUEST)
+  msg_query = {
+    "msg":message,
+    "chat":chat.id,
+    "destiny":MSG_DESTINATION.COMPANY,
+    "role":MSG_ROL.USER
+  }
+  msg_serializer = WPSMessageSerializer(data=msg_query)
+  if msg_serializer.is_valid():
+    msg = msg_serializer.save()
+  else:
+    print(msg_serializer.errors)
+    return Response(msg_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
   
+    
+  print("Msg Registre")
   return Response({"Status":"OK"},status=status.HTTP_200_OK)
     
