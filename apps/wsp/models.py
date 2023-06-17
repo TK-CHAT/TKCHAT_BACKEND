@@ -83,14 +83,20 @@ class WSP():
     self.twilio_client = Client(self.account_sid,self.auth_token)
     
   def send_message(self, message:MessageWSP):
-    print('From_ whatsapp:'+self.phone_number)
-    print('To_whatsapp:'+message.send_to.phone_number)
+    client_phone= message.chat.client.phone_number
+    company_phone= message.chat.company.phone
+    if MSG_DESTINATION.CLIENT==message.destiny:
+      send_to= client_phone
+      send_by= company_phone
+    else:
+      send_to= company_phone 
+      send_by= client_phone
+    print('From_ whatsapp:'+send_by)
+    print('To_whatsapp:'+send_to)
     print('Message: '+message.msg)
-    
     message = self.twilio_client.messages.create(
-      from_='whatsapp:'+self.phone_number, 
+      from_='whatsapp:'+send_by, 
       body=message.msg,
-      to='whatsapp:'+message.chat.client.phone_number
+      to='whatsapp:'+send_to
     )
-    print(dir(message))
     return message

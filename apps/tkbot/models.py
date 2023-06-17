@@ -79,10 +79,11 @@ class openAI():
         })
     return messages
   
-  def get_response_msg(message:str):
+  def get_response_msg(self,message:str):
     response = openai.Completion.create(
       model="text-davinci-003",
-      prompt=message
+      prompt=message,
+      max_tokens=50
     )
-    data = json.loads(response)
+    data = json.loads(str(response))
     return data

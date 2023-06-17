@@ -2,16 +2,17 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
-from apps.wsp.models import WSP,ClientWSP
+from apps.wsp.models import ClientWSP
 from .serializers import WPSMessageSerializer,ClientWPSSerializer,ChatWSPSerializer,ChatWSPDefaultSerializer
-from django.db import IntegrityError
 from common.constants.constants import CHAT_STATUS,MSG_DESTINATION,MSG_ROL
-from apps.wsp.models import ChatWSP,MessageWSP
+from apps.wsp.models import ChatWSP,WSP
 from django.views.decorators.csrf import csrf_exempt
-from twilio.twiml.messaging_response import MessagingResponse
 from apps.companies.models import Company
 from apps.tkbot.models import Bot
 from apps.tkbot.api.serializers import botSerializer
+from apps.tkbot.models import openAI
+
+openIA_instance=openAI()
 
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
@@ -115,8 +116,22 @@ def receive_msg_wps_view(request):
   else:
     print(msg_serializer.errors)
     return Response(msg_serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-  
-    
-  print("Msg Registre")
+  bot_response = openIA_instance.get_response_msg(message)
+  # print(bot_response)
+  response_msg=bot_response['choices'][0]['text']
+  msg_response_query={
+    "msg":response_msg,
+    "chat":chat.id,
+    "destiny":MSG_DESTINATION.CLIENT,
+    "role":MSG_ROL.ASSISTANT
+  }
+  msg_response_serilizer= WPSMessageSerializer(data=msg_response_query)
+  if msg_response_serilizer.is_valid():
+    response_msg_valid = msg_response_serilizer.save()
+    wps_instance = WSP()
+    wps_instance.send_message(response_msg_valid)
+  else:
+    print(msg_response_serilizer.errors)
+    return Response(msg_response_serilizer.errors,status=status.HTTP_400_BAD_REQUEST)
   return Response({"Status":"OK"},status=status.HTTP_200_OK)
     
