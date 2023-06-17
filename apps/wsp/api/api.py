@@ -5,9 +5,12 @@ from rest_framework import status
 from apps.wsp.models import WSP,ClientWSP
 from .serializers import WPSMessageSerializer,ClientWPSSerializer,ChatWSPSerializer,ChatWSPDefaultSerializer
 from django.db import IntegrityError
-from common.constants.constants import CHAT_STATUS
-from apps.wsp.models import ChatWSP
-
+from common.constants.constants import CHAT_STATUS,MSG_DESTINATION,MSG_ROL
+from apps.wsp.models import ChatWSP,MessageWSP
+from django.views.decorators.csrf import csrf_exempt
+from twilio.twiml.messaging_response import MessagingResponse
+from apps.companies.models import Company
+from apps.tkbot.models import Bot
 
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
@@ -53,5 +56,41 @@ def create_chat_view(request):
       except:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+  
+@api_view(['GET'])
+def delete_chat_view(request, pk):
+    try:
+        print(pk)
+        chat = ChatWSP.objects.get(pk=pk)
+        chat.delete()
+    except ChatWSP.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    return Response(status=status.HTTP_204_NO_CONTENT)
     
-      
+@api_view(['POST'])
+@csrf_exempt
+def receive_msg_wps_view(request):
+  sender = request.POST.get('From')
+  receiver = request.POST.get('To')
+  message = request.POST.get('Body')
+  print(f'{sender} says {message}')
+  print(request.POST)
+  client = ClientWSP.auto_check_add(sender.split(":")[1])
+  try:
+    company = Company.objects.get(phone= receiver.split(":")[1])
+    auto_bot= Bot()
+    if not auto_bot.exist():
+      auto_bot.create()
+    auto_bot= auto_bot.get_user_bot()
+    chat = ChatWSP.auto_check_add(client=client,company=company,bot=auto_bot)
+    msg = MessageWSP.objects.create(
+      msg=message,
+      chat=chat,
+      status=MSG_DESTINATION.COMPANY,
+      role = MSG_ROL.USER
+    )
+  except Company.DoesNotExist:
+    print("La compañia no funca :C")
+  
+  return Response({"Status":"OK"},status=status.HTTP_200_OK)
+    

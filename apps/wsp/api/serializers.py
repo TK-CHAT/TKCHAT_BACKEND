@@ -7,7 +7,7 @@ import re
 class WPSMessageSerializer(serializers.ModelSerializer):
   class Meta:
     model= MessageWSP
-    fields = ['msg','destiny','chat']
+    fields = ['msg','destiny','chat','role']
   
 
 class ClientWPSSerializer(serializers.ModelSerializer):
