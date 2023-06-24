@@ -12,6 +12,12 @@ class UserDataSerializer(serializers.ModelSerializer):
     fields = ['id','email','date_of_birth','is_active','is_admin','companies']
     lookup_field = 'id'
 
+
+class UserIdSerializerModel(serializers.ModelSerializer):
+  class Meta:
+    model = User
+    fields = ['id']
+    
 """
   Validate user_id from jtw token
 """

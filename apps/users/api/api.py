@@ -37,7 +37,9 @@ def account_token_view(request):
 @permission_classes([IsAuthenticated])
 def account_info_view(request):
   if request.method == 'GET':
-    serializer_user_id = UserIdSerializer(data=request.GET)
+    query = request.GET.copy()
+    query.update({'user': request.user.id})
+    serializer_user_id = UserIdSerializer(data=query)
     if serializer_user_id.is_valid():
       queryset = User.objects.filter(id=serializer_user_id.validated_data['user'])
       serializer_response = UserDataSerializer(queryset,many=True)

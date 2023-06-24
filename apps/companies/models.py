@@ -13,4 +13,13 @@ class Company(models.Model):
   
   def __str__(self):
     return self.name
-    
+  
+  def get_bot(self):
+    return self.bot
+  
+  def get_query_bot(self):
+    bot = self.bot
+    if bot !=None:
+      query = self.bot.get_query()
+      return query
+    return {}

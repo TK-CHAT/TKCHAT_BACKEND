@@ -10,7 +10,9 @@ from apps.operators.models import Operator
 @permission_classes([IsAuthenticated])
 def register_operator_view(request):
   if request.method == 'POST':
-    serializer = OperatorRegistrationSerializer(data=request.data,context=request.data)
+    query = request.data.copy()
+    query.update({'user': request.user.id})
+    serializer = OperatorRegistrationSerializer(data=query,context=query)
     if serializer.is_valid():
       serializer.save()
       return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -21,28 +23,14 @@ def register_operator_view(request):
 @permission_classes([IsAuthenticated])
 def update_operator_view(request):
   if request.method == 'POST':
-    validate_serializer = OperatorIdValidatorSerializer(data=request.data,context=request.data)
+    query = request.data.copy()
+    query.update({'user': request.user.id})
+    validate_serializer = OperatorIdValidatorSerializer(data=query,context=query)
     if validate_serializer.is_valid():
       instance = Operator.objects.get(id = validate_serializer.validated_data['id'])
-      update_serializer = OperatorUpdateSerializer(instance=instance , data=request.data,partial=True)
+      update_serializer = OperatorUpdateSerializer(instance=instance , data=query,partial=True)
       if update_serializer.is_valid():
         update_serializer.save()
         return Response(update_serializer.data, status=status.HTTP_201_CREATED)
       return Response(update_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response(validate_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    # try:
-      
-      
-      
-    #   instance = Operator.objects.get(id=request.data['id'])
-    # except:
-    #   context_error={
-    #     "id": "id del operador no se encontro"
-    #   }
-    #   return Response(context_error, status=status.HTTP_400_BAD_REQUEST)
-      
-    # serializer = OperatorUpdateSerializer(instance=instance,data=request.data)
-    # if serializer.is_valid():
-    #   serializer.save()
-    #   return Response(serializer.data, status=status.HTTP_201_CREATED)
-    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -10,7 +10,8 @@ import environ
 env = environ.Env()
 import json
 from apps.wsp.models import ChatWSP
-
+from common.constants.constants import MSG_ROL
+import json
 
 class Bot(User):
   _bot_mail="default@msg.bot"
@@ -46,8 +47,26 @@ class Bot(User):
       return bot
     except Bot.DoesNotExist:
       return None
+  
+  def get_query(self):
+    prompts = self.prompts.all()
+    prompts=list(prompts.values())
+    query= {
+      'id':self.id,
+      'temperature':self.temperature,
+      'company': self.company.id,
+      'prompts': prompts
+    }
+    return query
 
-
+class BotPrompts(models.Model):
+  bot = models.ForeignKey(Bot, on_delete=models.CASCADE, related_name="prompts")
+  prompt = models.TextField()
+  role = models.CharField(max_length=10, choices=[
+        (MSG_ROL.SYSTEM, 'SYSTEM'),
+        (MSG_ROL.ASSISTANT, 'ASSISTANT'),
+    ])
+  
 class openAI():
   _org_id=os.environ.get('OPENIA_ORG',default=env('OPENIA_ORG'))
   _api_key=os.environ.get('OPENIA_KEY',default=env('OPENIA_KEY'))
@@ -59,17 +78,26 @@ class openAI():
   def get_list_models(self):
     self.__list_models
   
-  def get_response_chat(chat:ChatWSP):
-    
+  def get_response_chat(self,chat:ChatWSP, bot:Bot):
+    messages = chat.messages.all()
+    bot_prompts = bot.prompts.all()
+    chatGPT_msg= []
+    for prompt in bot_prompts:
+      chatGPT_msg.append({
+        'role': prompt.role.lower(),
+        'content': prompt.prompt
+      })
+    for message in messages:
+      chatGPT_msg.append({
+        'role': message.role.lower(),
+        'content': message.msg
+      })
+    print(chatGPT_msg)
     response = openai.ChatCompletion.create(
       model ="gpt-3.5-turbo",
-      messages=[
-        {"role": "system", "content": "You are a helpful assistant."},
-        {"role": "user", "content": "Who won the world series in 2020?"},
-        {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
-        {"role": "user", "content": "Where was it played?"}
-      ]
+      messages=chatGPT_msg
     )
+    return response
   
   def parse_chat_to_chatGTP_message(chat: ChatWSP):
     messages = []
