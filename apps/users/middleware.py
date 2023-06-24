@@ -1,7 +1,11 @@
 from django.utils.deprecation import MiddlewareMixin
+from rest_framework.response import Response
+
 from django.http import QueryDict
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import AccessToken
+from apps.users.api.serializers import UserIdSerializerModel
+from rest_framework import status
 
 BYPASSED_ROUTES = [
   '/api/account/register/',
@@ -23,18 +27,16 @@ class ModificarRequestMiddleware(MiddlewareMixin):
     self.get_response = get_response
 
   def __call__(self, request):
-    
     if request.path not in BYPASSED_ROUTES:
+      print('check')
       user_id = get_user_id(request=request)
-      if request.method == 'GET':
-        get_data = request.GET.copy()
-        get_data.update({'user': user_id})
-        request.GET = get_data
-        
-      if request.method == 'POST':
-        get_data = request.POST.copy()
-        get_data.update({'user': user_id})
-        request.POST = get_data
-        
+      user_serializer = UserIdSerializerModel(data={'id':user_id})
+      if user_serializer.is_valid():
+        request.user=user_id
+      else:
+        return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     response = self.get_response(request)
     return response
+      
+
+    

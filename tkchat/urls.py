@@ -24,5 +24,8 @@ urlpatterns = [
     path('api/account/',include('apps.users.api.urls')),
     path('api/companies/',include('apps.companies.api.urls')),
     path('api/operators/',include('apps.operators.api.urls')),
+    path('api/livechat/',include('apps.livechat.api.urls')),
+    path('api/wsp/',include('apps.wsp.api.urls')),
+    path('api/tkbot/',include('apps.tkbot.api.urls')),
     
 ]

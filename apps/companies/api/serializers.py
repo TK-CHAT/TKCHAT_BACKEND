@@ -38,7 +38,7 @@ class CompanyUpdateDataSerializer(serializers.ModelSerializer):
       user = User.objects.get(email=value)
       if not user.is_admin:
         raise serializers.ValidationError('El usuario no tiene privilegios para modificar datos de la empresa')
-      if not self.context['user']==user:
+      if not self.context.user_id==user.id:
         raise serializers.ValidationError('El usuario no es el dueño de la empresa')
     except ValueError as e:
       raise serializers.ValidationError(e.args)
@@ -49,7 +49,6 @@ class ValidCompanySerializer(serializers.Serializer):
   
   def validate_id(self,value):
     try:
-      print(value)
       company = Company.objects.filter(id=value)
       if len(company) == 0:
         raise serializers.ValidationError('El id de la empresa no está registrado')
