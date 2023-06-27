@@ -25,5 +25,7 @@ import apps.livechat.routing
 
 application = ProtocolTypeRouter({
   'http':AsgiHandler(),
-  'websocket': URLRouter(apps.livechat.routing.websockets_urlpatterns),
+  'websocket': AuthMiddlewareStack( 
+    URLRouter(apps.livechat.routing.websockets_urlpatterns)
+  )
 })
